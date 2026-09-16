@@ -22,6 +22,7 @@ wakeword/models/*.onnx
 
 # Backups / legacy
 *.bak
+scarlett.py
 scarlett_legacy.py
 
 # OS/editor
