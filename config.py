@@ -246,6 +246,33 @@ SPOTIFY_SCOPES = (
 
 
 # ============================================================
+# RADIO
+# ============================================================
+
+MPV_PATH = os.getenv(
+    "MPV_PATH",
+    "/usr/bin/mpv",
+)
+
+RADIO_OUTPUT = os.getenv(
+    "RADIO_OUTPUT",
+    "raspotify_out",
+)
+
+RADIO_DEFAULT_VOLUME = int(
+    os.getenv(
+        "RADIO_DEFAULT_VOLUME",
+        "80",
+    )
+)
+
+MPV_IPC_SOCKET = (
+    STATE_DIR
+    / "mpv-radio.sock"
+)
+
+
+# ============================================================
 # PROMPTS
 # ============================================================
 

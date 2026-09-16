@@ -1,3 +1,5 @@
+import asyncio
+
 from config import (
     MAX_SITE_PAGES,
     MAX_SITE_DEPTH,
@@ -24,6 +26,12 @@ from tools.spotify import (
     spotify_play,
     spotify_control,
     spotify_info,
+)
+
+from tools.radio import (
+    radio_play,
+    radio_control,
+    stop_radio_silent,
 )
 
 
@@ -284,6 +292,11 @@ async def execute_tool(
                 "n'a été demandée."
             )
 
+        # Une seule source sonore à la fois :
+        # lancer Spotify coupe la radio.
+
+        stop_radio_silent()
+
         return await spotify_play(
             query,
             kind,
@@ -323,6 +336,70 @@ async def execute_tool(
 
         return await spotify_info(
             what
+        )
+
+
+    # ========================================================
+    # RADIO
+    # ========================================================
+
+    if name == "radio":
+
+        action = arguments.get(
+            "action",
+            "",
+        )
+
+        if action == "play":
+
+            station = arguments.get(
+                "station",
+                "",
+            )
+
+            if not station:
+
+                return (
+                    "Aucune station "
+                    "n'a été demandée."
+                )
+
+            # Une seule source sonore à la
+            # fois : lancer la radio met
+            # Spotify en pause.
+
+            try:
+
+                from tools.spotify import (
+                    _control_sync,
+                )
+
+                await asyncio.to_thread(
+                    _control_sync,
+                    "pause",
+                )
+
+            except Exception:
+
+                pass
+
+            return await radio_play(
+                station
+            )
+
+        if action in (
+            "stop",
+            "volume",
+            "current",
+        ):
+
+            return await radio_control(
+                action,
+                arguments.get("value"),
+            )
+
+        return (
+            "Action radio inconnue."
         )
 
 

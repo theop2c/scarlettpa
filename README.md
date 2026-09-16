@@ -13,6 +13,7 @@ Version actuelle : **V3.2**
 - **Navigation multi-pages** (`browse_site`) — exploration d'un site sur plusieurs pages (jusqu'à 2 niveaux de profondeur) avec sélection intelligente des liens internes à suivre
 - **Contrôle du volume** (`set_volume` / `get_volume`) — pourcentage précis, augmenter/diminuer, mute/unmute, maximum, avec persistance du niveau entre les redémarrages
 - **Spotify** (`spotify_play` / `spotify_control` / `spotify_info`) — « mets Get Lucky de Daft Punk » : morceau, artiste, album ou playlist, pause/reprise, suivant/précédent, volume de la musique, morceau en cours ; le Pi est l'enceinte Spotify Connect « Scarlett » (raspotify), et la voix de Scarlett se mixe par-dessus la musique (ALSA dmix)
+- **Radio française en direct** (`radio`) — « mets FIP », « lance Radio Nova » : 13 stations (FIP, France Inter, France Info, France Musique, France Culture, Nova, Skyrock, NRJ, Fun Radio, RTL, RMC, BFM Business, Europe 1) lues avec mpv, volume à chaud et titre en cours via IPC ; radio et Spotify s'excluent automatiquement (une seule source à la fois)
 
 ## Matériel
 
@@ -193,6 +194,14 @@ LIBRESPOT_INITIAL_VOLUME="70"
 ```
 
 **d. Première connexion** — l'enceinte « Scarlett » ne s'enregistre sur le compte qu'après avoir été sélectionnée une première fois depuis l'app Spotify (téléphone ou desktop, sur le même réseau) : lancer un morceau et choisir « Scarlett » dans le sélecteur d'appareils.
+
+### Radio (V4.2)
+
+```bash
+sudo apt install -y mpv
+```
+
+Les stations et leurs flux sont définis dans [tools/radio.py](tools/radio.py) (`STATIONS`) — si une URL de flux meurt, il suffit de la mettre à jour là. La radio sort sur `raspotify_out` (le même dmix que la musique), configurable via `RADIO_OUTPUT` dans `.env`.
 
 ## Lancement
 

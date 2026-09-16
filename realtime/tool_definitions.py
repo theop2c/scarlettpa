@@ -372,6 +372,86 @@ TOOLS = [
 
 
     # ========================================================
+    # RADIO
+    # ========================================================
+
+    {
+        "type": "function",
+
+        "name": "radio",
+
+        "description": (
+            "Écoute de la radio française en "
+            "direct : FIP, France Inter, France "
+            "Info, France Musique, France "
+            "Culture, Nova, Skyrock, NRJ, Fun "
+            "Radio, RTL, RMC, BFM Business, "
+            "Europe 1. Permet aussi de couper "
+            "la radio, régler son volume ou "
+            "connaître le titre en cours."
+        ),
+
+        "parameters": {
+
+            "type": "object",
+
+            "properties": {
+
+                "action": {
+
+                    "type": "string",
+
+                    "enum": [
+                        "play",
+                        "stop",
+                        "volume",
+                        "current",
+                    ],
+
+                    "description": (
+                        "play : lancer une station. "
+                        "stop : couper la radio. "
+                        "volume : régler le volume "
+                        "de la radio. "
+                        "current : titre en cours."
+                    ),
+                },
+
+                "station": {
+
+                    "type": "string",
+
+                    "description": (
+                        "Pour 'play' : nom de la "
+                        "station demandée."
+                    ),
+                },
+
+                "value": {
+
+                    "type": "integer",
+
+                    "minimum": 0,
+                    "maximum": 100,
+
+                    "description": (
+                        "Pour 'volume' : pourcentage "
+                        "cible."
+                    ),
+                },
+            },
+
+            "required": [
+                "action",
+            ],
+
+            "additionalProperties":
+                False,
+        },
+    },
+
+
+    # ========================================================
     # SPOTIFY INFO
     # ========================================================
 
