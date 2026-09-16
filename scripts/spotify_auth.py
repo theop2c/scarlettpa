@@ -58,12 +58,53 @@ def main():
 
     auth = build_auth_manager()
 
-    # Déclenche le flux interactif :
-    # URL à ouvrir, puis coller l'URL
-    # de redirection.
+    print()
+    print(
+        "1. Ouvre cette URL dans un navigateur "
+        "(sur n'importe quelle machine) :"
+    )
+
+    print()
+    print(
+        auth.get_authorize_url()
+    )
+
+    print()
+    print(
+        "2. Connecte-toi à Spotify et accepte."
+    )
+
+    print(
+        "3. Le navigateur va rediriger vers "
+        "une page 127.0.0.1 qui ne charge pas : "
+        "c'est normal."
+    )
+
+    print(
+        "4. Copie l'URL complète de la barre "
+        "d'adresse et colle-la ci-dessous."
+    )
+
+    print()
+
+    response = ""
+
+    while not response:
+
+        response = input(
+            "URL de redirection "
+            "(http://127.0.0.1:8888/callback?code=...) : "
+        ).strip()
+
+    code = auth.parse_response_code(
+        response
+    )
 
     token = auth.get_access_token(
-        as_dict=False
+
+        code=code,
+
+        as_dict=False,
     )
 
     if not token:
