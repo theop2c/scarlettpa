@@ -107,18 +107,47 @@ class WakeWordEngine:
 
             self.feature_frames = 16
 
-        self.audio_buffer = deque(
-            maxlen=WAKE_RATE * 3
-        )
+        # Pipeline incrémental : à chaque bloc
+        # de 1280 échantillons (80 ms), on ne
+        # calcule que les 8 nouvelles trames mel
+        # et 1 nouvel embedding, au lieu de tout
+        # recalculer sur 3 s d'audio.
+
+        self._reset_buffers()
 
         print(
             "Wake Word engine prêt."
         )
 
 
+    def _reset_buffers(self):
+
+        # 400 échantillons de contexte pour que
+        # les trames mel (fenêtre 400, pas 160)
+        # restent alignées entre deux blocs.
+
+        self._context = np.zeros(
+            400,
+            dtype=np.int16,
+        )
+
+        self._pending = np.empty(
+            0,
+            dtype=np.int16,
+        )
+
+        self.spec_frames = deque(
+            maxlen=76
+        )
+
+        self.embeddings_buffer = deque(
+            maxlen=self.feature_frames
+        )
+
+
     def reset(self):
 
-        self.audio_buffer.clear()
+        self._reset_buffers()
 
 
     def _melspectrogram(
@@ -158,39 +187,15 @@ class WakeWordEngine:
         )
 
 
-    def _embeddings(
+    def _embed_window(
         self,
-        spectrogram
+        frames_76,
     ):
 
-        windows = []
-
-        for i in range(
-            0,
-            spectrogram.shape[0],
-            8,
-        ):
-
-            window = spectrogram[
-                i:i + 76
-            ]
-
-            if window.shape[0] == 76:
-
-                windows.append(
-                    window
-                )
-
-        if not windows:
-
-            return None
-
         x = np.asarray(
-            windows,
+            frames_76,
             dtype=np.float32,
-        )
-
-        x = x[..., None]
+        )[None, :, :, None]
 
         result = self.embedding.run(
             None,
@@ -200,18 +205,10 @@ class WakeWordEngine:
             },
         )[0]
 
-        embeddings = np.asarray(
+        return np.asarray(
             result,
             dtype=np.float32,
-        ).squeeze()
-
-        if embeddings.ndim == 1:
-
-            embeddings = (
-                embeddings[None, :]
-            )
-
-        return embeddings
+        ).reshape(-1)
 
 
     def predict(
@@ -224,48 +221,71 @@ class WakeWordEngine:
             dtype=np.int16,
         )
 
-        self.audio_buffer.extend(
-            audio_16k.tolist()
+        self._pending = np.concatenate(
+            (
+                self._pending,
+                audio_16k,
+            )
         )
 
-        if len(
-            self.audio_buffer
-        ) < 32000:
+        # Un bloc = 1280 échantillons (80 ms)
+        # -> 8 trames mel -> 1 embedding.
 
-            return 0.0
+        while len(self._pending) >= WAKE_CHUNK_16K:
 
-        audio = np.asarray(
-            self.audio_buffer,
-            dtype=np.int16,
-        )
+            block = (
+                self._pending[
+                    :WAKE_CHUNK_16K
+                ]
+            )
 
-        spec = self._melspectrogram(
-            audio
-        )
+            self._pending = (
+                self._pending[
+                    WAKE_CHUNK_16K:
+                ]
+            )
 
-        embeddings = self._embeddings(
-            spec
-        )
+            audio = np.concatenate(
+                (
+                    self._context,
+                    block,
+                )
+            )
 
-        if embeddings is None:
+            self._context = (
+                block[-400:]
+            )
 
-            return 0.0
+            spec = self._melspectrogram(
+                audio
+            )
+
+            self.spec_frames.extend(
+                spec
+            )
+
+            if (
+                len(self.spec_frames)
+                == 76
+            ):
+
+                self.embeddings_buffer.append(
+                    self._embed_window(
+                        self.spec_frames
+                    )
+                )
 
         if (
-            embeddings.shape[0]
+            len(self.embeddings_buffer)
             < self.feature_frames
         ):
 
             return 0.0
 
-        features = embeddings[
-            -self.feature_frames:
-        ]
-
-        features = (
-            features[None, :, :]
-            .astype(np.float32)
-        )
+        features = np.asarray(
+            self.embeddings_buffer,
+            dtype=np.float32,
+        )[None, :, :]
 
         result = self.wake.run(
             None,
@@ -301,9 +321,16 @@ class WakeWordEngine:
         )
         print()
 
+        # Blocs de 160 ms (2 chunks wake) :
+        # une inférence toutes les 160 ms
+        # au lieu de 80 ms, CPU divisé par 2,
+        # latence de détection inchangée
+        # à l'oreille.
+
         block_48k = (
             WAKE_CHUNK_16K
             * 3
+            * 2
         )
 
         with sd.InputStream(
