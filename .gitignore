@@ -1,0 +1,30 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Local state
+state/*.json
+
+# Logs
+logs/
+*.log
+
+# Wake-word binary models
+wakeword/models/*.onnx
+
+# Backups / legacy
+*.bak
+scarlett_legacy.py
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/

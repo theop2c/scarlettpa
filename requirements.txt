@@ -1,0 +1,8 @@
+openai[realtime]
+numpy
+sounddevice
+onnxruntime
+playwright
+beautifulsoup4
+lxml
+python-dotenv
