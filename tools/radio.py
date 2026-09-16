@@ -378,7 +378,8 @@ def _play_sync(query):
         )
 
     return (
-        f"Je lance {station['name']}."
+        True,
+        f"Je lance {station['name']}.",
     )
 
 
@@ -391,7 +392,10 @@ def _control_sync(
 
         if _stop_sync():
 
-            return "Radio coupée."
+            return (
+                True,
+                "Radio coupée.",
+            )
 
         return (
             "Aucune radio n'est en cours."
@@ -430,8 +434,9 @@ def _control_sync(
             )
 
             return (
+                True,
                 "Volume de la radio "
-                f"à {volume} pour cent."
+                f"à {volume} pour cent.",
             )
 
         except Exception as error:
@@ -518,10 +523,22 @@ async def radio_play(query):
     )
     print()
 
-    return await asyncio.to_thread(
+    result = await asyncio.to_thread(
         _play_sync,
         query,
     )
+
+    # Une chaîne nue = message d'erreur
+    # (les succès sont des tuples).
+
+    if isinstance(result, str):
+
+        return (
+            False,
+            result,
+        )
+
+    return result
 
 
 async def radio_control(
@@ -536,11 +553,20 @@ async def radio_control(
         value if value is not None else "",
     )
 
-    return await asyncio.to_thread(
+    result = await asyncio.to_thread(
         _control_sync,
         action,
         value,
     )
+
+    if isinstance(result, str):
+
+        return (
+            False,
+            result,
+        )
+
+    return result
 
 
 def stop_radio_silent():

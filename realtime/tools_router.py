@@ -35,6 +35,20 @@ from tools.radio import (
 )
 
 
+def media_result(result):
+
+    # Les tools média renvoient (ok, message).
+    # ok=True : l'action est faite, Scarlett
+    # reste silencieuse mais à l'écoute.
+
+    silent, message = result
+
+    return {
+        "output": message,
+        "silent": silent,
+    }
+
+
 def format_volume_state(
     state: dict
 ) -> str:
@@ -297,9 +311,11 @@ async def execute_tool(
 
         stop_radio_silent()
 
-        return await spotify_play(
-            query,
-            kind,
+        return media_result(
+            await spotify_play(
+                query,
+                kind,
+            )
         )
 
 
@@ -321,9 +337,11 @@ async def execute_tool(
                 "n'a été demandée."
             )
 
-        return await spotify_control(
-            action,
-            value,
+        return media_result(
+            await spotify_control(
+                action,
+                value,
+            )
         )
 
 
@@ -383,8 +401,10 @@ async def execute_tool(
 
                 pass
 
-            return await radio_play(
-                station
+            return media_result(
+                await radio_play(
+                    station
+                )
             )
 
         if action in (
@@ -393,9 +413,11 @@ async def execute_tool(
             "current",
         ):
 
-            return await radio_control(
-                action,
-                arguments.get("value"),
+            return media_result(
+                await radio_control(
+                    action,
+                    arguments.get("value"),
+                )
             )
 
         return (

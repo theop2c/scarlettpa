@@ -1,4 +1,5 @@
 import json
+import subprocess
 import threading
 
 import numpy as np
@@ -8,6 +9,8 @@ from config import (
     DEFAULT_VOLUME_STEP,
     STATE_DIR,
     VOLUME_STATE_FILE,
+    MIXER_CARD,
+    MIXER_CONTROL,
 )
 
 
@@ -27,6 +30,11 @@ class VolumeController:
         )
 
         self.load()
+
+        # Restaure le volume matériel
+        # au démarrage.
+
+        self._apply_hardware()
 
 
     # ========================================================
@@ -126,6 +134,56 @@ class VolumeController:
 
             print(
                 "[VOLUME] Impossible de sauvegarder :",
+                error,
+            )
+
+        self._apply_hardware()
+
+
+    def _apply_hardware(self):
+
+        # Volume maître : mixeur matériel de
+        # l'enceinte USB. S'applique à TOUT
+        # ce qui sort (voix, Spotify, radio),
+        # contrairement à l'ancien gain
+        # logiciel limité à la voix.
+
+        try:
+
+            if self.muted:
+
+                command = [
+                    "amixer",
+                    "-c",
+                    MIXER_CARD,
+                    "set",
+                    MIXER_CONTROL,
+                    "mute",
+                ]
+
+            else:
+
+                command = [
+                    "amixer",
+                    "-c",
+                    MIXER_CARD,
+                    "-M",
+                    "set",
+                    MIXER_CONTROL,
+                    f"{self.volume}%",
+                    "unmute",
+                ]
+
+            subprocess.run(
+                command,
+                capture_output=True,
+                timeout=3,
+            )
+
+        except Exception as error:
+
+            print(
+                "[VOLUME] Erreur mixeur matériel :",
                 error,
             )
 
@@ -348,6 +406,12 @@ class VolumeController:
 
     def apply(self, audio):
 
+        # Le volume est désormais géré par le
+        # mixeur matériel (voir _apply_hardware),
+        # qui s'applique à toutes les sources.
+        # La voix n'est donc plus atténuée en
+        # logiciel — sauf en mute, par sécurité.
+
         audio = np.asarray(
             audio,
             dtype=np.int16,
@@ -356,7 +420,6 @@ class VolumeController:
         with self._lock:
 
             muted = self.muted
-            volume = self.volume
 
         if muted:
 
@@ -364,27 +427,7 @@ class VolumeController:
                 audio
             )
 
-        gain = (
-            volume
-            / 100.0
-        )
-
-        result = (
-            audio.astype(
-                np.float32
-            )
-            * gain
-        )
-
-        result = np.clip(
-            result,
-            -32768,
-            32767,
-        )
-
-        return result.astype(
-            np.int16
-        )
+        return audio
 
 
     def _status_unlocked(self):

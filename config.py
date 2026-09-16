@@ -59,6 +59,20 @@ CHANNELS = 1
 # VOLUME
 # ============================================================
 
+# Mixeur matériel de l'enceinte USB :
+# le volume maître s'applique à tout
+# ce qui sort (voix, Spotify, radio).
+
+MIXER_CARD = os.getenv(
+    "MIXER_CARD",
+    "Device",
+)
+
+MIXER_CONTROL = os.getenv(
+    "MIXER_CONTROL",
+    "Speaker",
+)
+
 DEFAULT_VOLUME = int(
     os.getenv(
         "DEFAULT_VOLUME",

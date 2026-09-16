@@ -427,6 +427,33 @@ async def run_openai_conversation():
                             )
                         )
 
+                        # Les tools média renvoient
+                        # {"output", "silent"} :
+                        # action réussie -> pas de
+                        # réponse vocale, Scarlett
+                        # reste à l'écoute.
+
+                        silent = False
+
+                        if isinstance(
+                            tool_result,
+                            dict,
+                        ):
+
+                            silent = (
+                                tool_result.get(
+                                    "silent",
+                                    False,
+                                )
+                            )
+
+                            tool_result = (
+                                tool_result.get(
+                                    "output",
+                                    "",
+                                )
+                            )
+
                         print(
                             "Résultat tool :",
                             tool_result,
@@ -452,11 +479,21 @@ async def run_openai_conversation():
                             )
                         )
 
-                        await (
-                            connection
-                            .response
-                            .create()
-                        )
+                        if silent:
+
+                            print(
+                                "[MEDIA] Action faite, "
+                                "Scarlett reste "
+                                "silencieuse."
+                            )
+
+                        else:
+
+                            await (
+                                connection
+                                .response
+                                .create()
+                            )
 
                         last_activity = (
                             time.time()

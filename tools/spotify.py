@@ -374,8 +374,9 @@ def _play_sync(
             if playlist is None:
 
                 return (
+                    False,
                     "Je n'ai pas trouvé de playlist "
-                    f"correspondant à {query}."
+                    f"correspondant à {query}.",
                 )
 
             sp.start_playback(
@@ -387,8 +388,9 @@ def _play_sync(
             )
 
             return (
+                True,
                 "Je lance la playlist "
-                f"{playlist['name']} sur Spotify."
+                f"{playlist['name']} sur Spotify.",
             )
 
         # ----------------------------------------------------
@@ -415,8 +417,9 @@ def _play_sync(
             if not items:
 
                 return (
+                    False,
                     "Je n'ai rien trouvé sur Spotify "
-                    f"pour {query}."
+                    f"pour {query}.",
                 )
 
             item = pick_best(
@@ -435,13 +438,15 @@ def _play_sync(
             if kind == "artist":
 
                 return (
+                    True,
                     "Je lance les titres de "
-                    f"{item['name']} sur Spotify."
+                    f"{item['name']} sur Spotify.",
                 )
 
             return (
+                True,
                 "Je lance l'album "
-                f"{format_track(item)} sur Spotify."
+                f"{format_track(item)} sur Spotify.",
             )
 
         # ----------------------------------------------------
@@ -466,8 +471,9 @@ def _play_sync(
         if not items:
 
             return (
+                False,
                 "Je n'ai pas trouvé ce morceau "
-                f"sur Spotify : {query}."
+                f"sur Spotify : {query}.",
             )
 
         track = items[0]
@@ -482,8 +488,9 @@ def _play_sync(
         )
 
         return (
+            True,
             "Je lance "
-            f"{format_track(track)} sur Spotify."
+            f"{format_track(track)} sur Spotify.",
         )
 
     except spotipy.SpotifyException as error:
@@ -541,7 +548,7 @@ def _control_sync(
                 device_id=device_id
             )
 
-            return "Musique en pause."
+            return (True, "Musique en pause.")
 
         if action == "resume":
 
@@ -549,7 +556,7 @@ def _control_sync(
                 device_id=device_id
             )
 
-            return "Je relance la musique."
+            return (True, "Je relance la musique.")
 
         if action == "next":
 
@@ -557,7 +564,7 @@ def _control_sync(
                 device_id=device_id
             )
 
-            return "Morceau suivant."
+            return (True, "Morceau suivant.")
 
         if action == "previous":
 
@@ -565,14 +572,15 @@ def _control_sync(
                 device_id=device_id
             )
 
-            return "Morceau précédent."
+            return (True, "Morceau précédent.")
 
         if action == "volume":
 
             if value is None:
 
                 return (
-                    "Quel volume pour la musique ?"
+                    False,
+                    "Quel volume pour la musique ?",
                 )
 
             volume = max(
@@ -591,13 +599,15 @@ def _control_sync(
             )
 
             return (
+                True,
                 "Volume de la musique "
-                f"à {volume} pour cent."
+                f"à {volume} pour cent.",
             )
 
         return (
+            False,
             "Action Spotify inconnue : "
-            f"{action}."
+            f"{action}.",
         )
 
     except spotipy.SpotifyException as error:
@@ -746,11 +756,23 @@ async def spotify_play(
     )
     print()
 
-    return await asyncio.to_thread(
+    result = await asyncio.to_thread(
         _play_sync,
         query,
         kind,
     )
+
+    # Une chaîne nue = message d'erreur
+    # (les succès sont des tuples).
+
+    if isinstance(result, str):
+
+        return (
+            False,
+            result,
+        )
+
+    return result
 
 
 async def spotify_control(
@@ -765,11 +787,20 @@ async def spotify_control(
         value if value is not None else "",
     )
 
-    return await asyncio.to_thread(
+    result = await asyncio.to_thread(
         _control_sync,
         action,
         value,
     )
+
+    if isinstance(result, str):
+
+        return (
+            False,
+            result,
+        )
+
+    return result
 
 
 async def spotify_info(

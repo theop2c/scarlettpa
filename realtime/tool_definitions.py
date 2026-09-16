@@ -159,10 +159,12 @@ TOOLS = [
         "name": "set_volume",
 
         "description": (
-            "Contrôle le volume audio de Scarlett. "
-            "Utiliser cet outil lorsque l'utilisateur "
-            "demande de monter, baisser, couper, "
-            "réactiver ou définir le volume."
+            "Volume général de l'enceinte : "
+            "s'applique à tout ce qui sort "
+            "(voix de Scarlett, musique Spotify, "
+            "radio). Utiliser pour monter, "
+            "baisser, couper, réactiver ou "
+            "définir le son global."
         ),
 
         "parameters": {
