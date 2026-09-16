@@ -243,4 +243,176 @@ TOOLS = [
                 False,
         },
     },
+
+
+    # ========================================================
+    # SPOTIFY PLAY
+    # ========================================================
+
+    {
+        "type": "function",
+
+        "name": "spotify_play",
+
+        "description": (
+            "Lance de la musique sur Spotify : "
+            "un morceau, un artiste, un album "
+            "ou une playlist."
+        ),
+
+        "parameters": {
+
+            "type": "object",
+
+            "properties": {
+
+                "query": {
+
+                    "type": "string",
+
+                    "description": (
+                        "Ce qu'il faut jouer : "
+                        "titre du morceau avec artiste "
+                        "si connu, nom d'artiste, "
+                        "d'album ou de playlist."
+                    ),
+                },
+
+                "type": {
+
+                    "type": "string",
+
+                    "enum": [
+                        "track",
+                        "artist",
+                        "album",
+                        "playlist",
+                    ],
+
+                    "description": (
+                        "Nature de la demande. "
+                        "Par défaut : track."
+                    ),
+                },
+            },
+
+            "required": [
+                "query",
+            ],
+
+            "additionalProperties":
+                False,
+        },
+    },
+
+
+    # ========================================================
+    # SPOTIFY CONTROL
+    # ========================================================
+
+    {
+        "type": "function",
+
+        "name": "spotify_control",
+
+        "description": (
+            "Contrôle la lecture Spotify en cours : "
+            "pause, reprise, morceau suivant ou "
+            "précédent, et volume de la musique. "
+            "Pour le volume de la voix de Scarlett, "
+            "utiliser set_volume."
+        ),
+
+        "parameters": {
+
+            "type": "object",
+
+            "properties": {
+
+                "action": {
+
+                    "type": "string",
+
+                    "enum": [
+                        "pause",
+                        "resume",
+                        "next",
+                        "previous",
+                        "volume",
+                    ],
+
+                    "description": (
+                        "Action à appliquer "
+                        "à la lecture Spotify."
+                    ),
+                },
+
+                "value": {
+
+                    "type": "integer",
+
+                    "minimum": 0,
+                    "maximum": 100,
+
+                    "description": (
+                        "Pour 'volume' : pourcentage "
+                        "cible de la musique."
+                    ),
+                },
+            },
+
+            "required": [
+                "action",
+            ],
+
+            "additionalProperties":
+                False,
+        },
+    },
+
+
+    # ========================================================
+    # SPOTIFY INFO
+    # ========================================================
+
+    {
+        "type": "function",
+
+        "name": "spotify_info",
+
+        "description": (
+            "Donne le morceau Spotify en cours "
+            "de lecture, ou la liste des playlists "
+            "de l'utilisateur."
+        ),
+
+        "parameters": {
+
+            "type": "object",
+
+            "properties": {
+
+                "what": {
+
+                    "type": "string",
+
+                    "enum": [
+                        "current_track",
+                        "playlists",
+                    ],
+
+                    "description": (
+                        "Information demandée."
+                    ),
+                },
+            },
+
+            "required": [
+                "what",
+            ],
+
+            "additionalProperties":
+                False,
+        },
+    },
 ]

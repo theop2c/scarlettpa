@@ -4,5 +4,6 @@ sounddevice
 onnxruntime
 playwright
 beautifulsoup4
+spotipy
 lxml
 python-dotenv

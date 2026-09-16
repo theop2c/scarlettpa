@@ -20,6 +20,12 @@ from tools.site_browser import (
     browse_site,
 )
 
+from tools.spotify import (
+    spotify_play,
+    spotify_control,
+    spotify_info,
+)
+
 
 def format_volume_state(
     state: dict
@@ -252,6 +258,71 @@ async def execute_tool(
             question=question,
             max_pages=MAX_SITE_PAGES,
             max_depth=MAX_SITE_DEPTH,
+        )
+
+
+    # ========================================================
+    # SPOTIFY
+    # ========================================================
+
+    if name == "spotify_play":
+
+        query = arguments.get(
+            "query",
+            "",
+        )
+
+        kind = arguments.get(
+            "type",
+            "track",
+        )
+
+        if not query:
+
+            return (
+                "Aucune musique "
+                "n'a été demandée."
+            )
+
+        return await spotify_play(
+            query,
+            kind,
+        )
+
+
+    if name == "spotify_control":
+
+        action = arguments.get(
+            "action",
+            "",
+        )
+
+        value = arguments.get(
+            "value",
+        )
+
+        if not action:
+
+            return (
+                "Aucune action Spotify "
+                "n'a été demandée."
+            )
+
+        return await spotify_control(
+            action,
+            value,
+        )
+
+
+    if name == "spotify_info":
+
+        what = arguments.get(
+            "what",
+            "current_track",
+        )
+
+        return await spotify_info(
+            what
         )
 
 

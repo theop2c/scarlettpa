@@ -13,12 +13,38 @@ load_dotenv(BASE_DIR / ".env")
 # AUDIO
 # ============================================================
 
-INPUT_DEVICE = int(
-    os.getenv("INPUT_DEVICE", "2")
+def _audio_device(
+    env_name,
+    default,
+):
+
+    # Index PortAudio (entier) ou nom
+    # de périphérique ALSA (chaîne),
+    # ex. "scarlett_out" défini dans
+    # /etc/asound.conf.
+
+    raw = os.getenv(
+        env_name,
+        default,
+    )
+
+    try:
+
+        return int(raw)
+
+    except ValueError:
+
+        return raw
+
+
+INPUT_DEVICE = _audio_device(
+    "INPUT_DEVICE",
+    "2",
 )
 
-OUTPUT_DEVICE = int(
-    os.getenv("OUTPUT_DEVICE", "1")
+OUTPUT_DEVICE = _audio_device(
+    "OUTPUT_DEVICE",
+    "1",
 )
 
 MIC_RATE = 48000
@@ -178,6 +204,44 @@ MAX_LINK_SELECTION_CALLS = int(
         "MAX_LINK_SELECTION_CALLS",
         "3",
     )
+)
+
+
+# ============================================================
+# SPOTIFY
+# ============================================================
+
+SPOTIFY_CLIENT_ID = os.getenv(
+    "SPOTIFY_CLIENT_ID",
+    "",
+)
+
+SPOTIFY_CLIENT_SECRET = os.getenv(
+    "SPOTIFY_CLIENT_SECRET",
+    "",
+)
+
+SPOTIFY_REDIRECT_URI = os.getenv(
+    "SPOTIFY_REDIRECT_URI",
+    "http://127.0.0.1:8888/callback",
+)
+
+SPOTIFY_DEVICE_NAME = os.getenv(
+    "SPOTIFY_DEVICE_NAME",
+    "Scarlett",
+)
+
+SPOTIFY_CACHE_FILE = (
+    STATE_DIR
+    / "spotify_token.json"
+)
+
+SPOTIFY_SCOPES = (
+    "user-modify-playback-state "
+    "user-read-playback-state "
+    "user-read-currently-playing "
+    "playlist-read-private "
+    "playlist-read-collaborative"
 )
 
 
