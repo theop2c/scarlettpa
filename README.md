@@ -205,10 +205,35 @@ Les stations et leurs flux sont définis dans [tools/radio.py](tools/radio.py) (
 
 ## Lancement
 
+### En service systemd (recommandé — V9)
+
+Scarlett démarre au boot, redémarre toute seule en cas de crash, et logge dans journald :
+
 ```bash
+sudo cp deploy/scarlett.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now scarlett
+```
+
+Commandes utiles :
+
+```bash
+systemctl status scarlett          # état du service
+journalctl -u scarlett -f          # logs en direct
+journalctl -u scarlett -n 100      # 100 dernières lignes
+sudo systemctl restart scarlett    # après une modif du code
+sudo systemctl stop scarlett       # arrêt (pour lancer à la main)
+```
+
+### À la main (debug)
+
+```bash
+sudo systemctl stop scarlett   # si le service tourne
 source .venv/bin/activate
 python app.py
 ```
+
+Un verrou (`state/scarlett.lock`) empêche deux instances simultanées — elles se disputeraient le micro.
 
 Dire « Hey Jarvis », attendre le bip, puis parler. La session se ferme après un délai d'inactivité (`CONVERSATION_TIMEOUT`, 20 s par défaut) et Scarlett retourne en veille.
 
@@ -220,7 +245,7 @@ Dire « Hey Jarvis », attendre le bip, puis parler. La session se ferme après 
 - **V6** — conversation naturelle (barge-in, echo cancellation, interruptions)
 - **V7** — mémoire locale (préférences, paramètres)
 - **V8** — navigation web active (clics, formulaires, avec confirmations)
-- **V9** — service systemd (lancement au boot, restart auto, logs)
+- ~~**V9** — service systemd~~ ✅
 - **V10** — Home Assistant (Philips Hue, radio, timers, automatisations)
 - **V11** — satellites (Raspberry salon + chambre, le bureau reste le cerveau central)
 - **V12** — architecture multi-modèles (realtime mini pour la conversation, modèle plus puissant pour les demandes complexes)

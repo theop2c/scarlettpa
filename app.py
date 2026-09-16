@@ -1,4 +1,8 @@
 import asyncio
+import fcntl
+import sys
+
+from pathlib import Path
 
 from audio.player import (
     play_beep,
@@ -84,7 +88,60 @@ async def main():
         )
 
 
+def acquire_single_instance_lock():
+
+    # Empêche deux Scarlett en même temps
+    # (service systemd + lancement manuel) :
+    # elles se disputeraient le micro.
+
+    lock_path = (
+        Path(__file__)
+        .resolve()
+        .parent
+        / "state"
+        / "scarlett.lock"
+    )
+
+    lock_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    lock_file = open(
+        lock_path,
+        "w",
+    )
+
+    try:
+
+        fcntl.flock(
+            lock_file,
+            fcntl.LOCK_EX
+            | fcntl.LOCK_NB,
+        )
+
+    except OSError:
+
+        print(
+            "Une autre instance de Scarlett "
+            "tourne déjà (service systemd ?). "
+            "Arrête-la d'abord : "
+            "sudo systemctl stop scarlett"
+        )
+
+        sys.exit(1)
+
+    # Garder le fichier ouvert : le verrou
+    # tombe tout seul à la fin du process.
+
+    return lock_file
+
+
 if __name__ == "__main__":
+
+    _lock = (
+        acquire_single_instance_lock()
+    )
 
     try:
 

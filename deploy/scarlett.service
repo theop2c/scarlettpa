@@ -1,0 +1,20 @@
+[Unit]
+Description=Scarlett - assistant vocal
+# Attend le reseau (OpenAI Realtime) et l'audio
+After=network-online.target sound.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/scarlett
+ExecStart=/home/pi/scarlett/.venv/bin/python app.py
+Restart=always
+RestartSec=5
+# Logs en direct dans journald (pas de buffering Python)
+Environment=PYTHONUNBUFFERED=1
+# En cas d'arret, tue aussi les enfants (mpv radio...)
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target
