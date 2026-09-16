@@ -12,6 +12,7 @@ Version actuelle : **V3.2**
 - **Navigation URL** (`browse_url`) — lecture d'une page précise via Chromium headless (Playwright)
 - **Navigation multi-pages** (`browse_site`) — exploration d'un site sur plusieurs pages (jusqu'à 2 niveaux de profondeur) avec sélection intelligente des liens internes à suivre
 - **Contrôle du volume** (`set_volume` / `get_volume`) — pourcentage précis, augmenter/diminuer, mute/unmute, maximum, avec persistance du niveau entre les redémarrages
+- **Spotify** (`spotify_play` / `spotify_control` / `spotify_info`) — « mets Get Lucky de Daft Punk » : morceau, artiste, album ou playlist, pause/reprise, suivant/précédent, volume de la musique, morceau en cours ; le Pi est l'enceinte Spotify Connect « Scarlett » (raspotify), et la voix de Scarlett se mixe par-dessus la musique (ALSA dmix)
 
 ## Matériel
 
@@ -134,6 +135,65 @@ Les index `INPUT_DEVICE` / `OUTPUT_DEVICE` correspondent aux périphériques lis
 python -c "import sounddevice; print(sounddevice.query_devices())"
 ```
 
+### Spotify (V4)
+
+Nécessite un compte Spotify **Premium**.
+
+**a. Sortie audio partagée** — pour que la voix de Scarlett et la musique se mixent sur la même enceinte, créer `/etc/asound.conf` :
+
+```
+pcm.usb_dmix {
+    type dmix
+    ipc_key 20481
+    ipc_perm 0666
+    slave {
+        pcm "hw:CARD=Device,DEV=0"
+        format S16_LE
+        rate 48000
+        channels 2
+        period_size 1024
+        buffer_size 8192
+    }
+}
+pcm.scarlett_out {
+    type plug
+    slave.pcm "usb_dmix"
+}
+pcm.raspotify_out {
+    type plug
+    slave.pcm "usb_dmix"
+}
+```
+
+(`CARD=Device` = nom ALSA de l'enceinte USB, cf. `aplay -l`.) Puis dans `.env` : `OUTPUT_DEVICE=scarlett_out`.
+
+**b. raspotify** — le Pi devient une enceinte Spotify Connect :
+
+```bash
+curl -sL https://dtcooper.github.io/raspotify/install.sh | sh
+```
+
+Dans `/etc/raspotify/conf` :
+
+```
+LIBRESPOT_NAME="Scarlett"
+LIBRESPOT_BACKEND="alsa"
+LIBRESPOT_DEVICE="raspotify_out"
+LIBRESPOT_BITRATE="320"
+LIBRESPOT_VOLUME_CTRL="linear"
+LIBRESPOT_INITIAL_VOLUME="70"
+```
+
+`VOLUME_CTRL=linear` est important : avec la courbe `log` par défaut, un volume Spotify de 50 % est quasi inaudible. Redémarrer avec `sudo systemctl restart raspotify`.
+
+**c. API Web Spotify** — créer une app sur [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) (Redirect URI : `http://127.0.0.1:8888/callback`, Web API), renseigner `SPOTIFY_CLIENT_ID` et `SPOTIFY_CLIENT_SECRET` dans `.env`, puis s'authentifier une fois :
+
+```bash
+.venv/bin/python scripts/spotify_auth.py
+```
+
+**d. Première connexion** — l'enceinte « Scarlett » ne s'enregistre sur le compte qu'après avoir été sélectionnée une première fois depuis l'app Spotify (téléphone ou desktop, sur le même réseau) : lancer un morceau et choisir « Scarlett » dans le sélecteur d'appareils.
+
 ## Lancement
 
 ```bash
@@ -145,7 +205,7 @@ Dire « Hey Jarvis », attendre le bip, puis parler. La session se ferme après 
 
 ## Roadmap
 
-- **V4** — Spotify (lecture, pause, suivant, playlists, morceau en cours)
+- ~~**V4** — Spotify~~ ✅
 - **V4.1** — YouTube
 - **V5** — vrai wake word « Hey Scarlett » (modèle local personnalisé)
 - **V6** — conversation naturelle (barge-in, echo cancellation, interruptions)
