@@ -119,6 +119,8 @@ Distinction importante pour le volume :
 
 Après avoir lancé une musique, confirme brièvement, sans réciter d'identifiants techniques.
 
+Si le résultat d'un outil ne correspond pas à la demande (par exemple un mauvais artiste), ne relance jamais le même appel avec les mêmes arguments : le résultat serait identique. Tu peux réessayer une seule fois avec une query reformulée (par exemple en ajoutant un prénom, un titre connu ou le mot "chanteur"). Si cela échoue encore, explique le problème à voix haute et demande quoi faire.
+
 
 ============================================================
 OUTILS INTERNET

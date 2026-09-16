@@ -1,4 +1,5 @@
 import asyncio
+import unicodedata
 
 import spotipy
 
@@ -143,6 +144,63 @@ def find_device(sp):
 # ============================================================
 # HELPERS
 # ============================================================
+
+def _normalize(text):
+
+    # minuscules + suppression des accents
+
+    decomposed = unicodedata.normalize(
+        "NFD",
+        text.lower(),
+    )
+
+    return "".join(
+        char
+        for char in decomposed
+        if unicodedata.category(char) != "Mn"
+    ).strip()
+
+
+def pick_best(
+    items,
+    query,
+):
+
+    # L'API Spotify classe mal avec limit=1
+    # (ex. "Jacques Brel" -> Francis Cabrel) :
+    # on cherche large puis on choisit par
+    # correspondance de nom.
+
+    if not items:
+
+        return None
+
+    target = _normalize(query)
+
+    for item in items:
+
+        if (
+            _normalize(item.get("name", ""))
+            == target
+        ):
+
+            return item
+
+    for item in items:
+
+        name = _normalize(
+            item.get("name", "")
+        )
+
+        if (
+            name.startswith(target)
+            or target.startswith(name)
+        ):
+
+            return item
+
+    return items[0]
+
 
 def format_track(item):
 
@@ -295,19 +353,22 @@ def _play_sync(
 
                     type="playlist",
 
-                    limit=1,
+                    limit=5,
                 )
 
-                items = (
-                    results
-                    .get("playlists", {})
-                    .get("items", [])
-                )
+                items = [
+                    item
+                    for item in (
+                        results
+                        .get("playlists", {})
+                        .get("items", [])
+                    )
+                    if item
+                ]
 
-                playlist = (
-                    items[0]
-                    if items
-                    else None
+                playlist = pick_best(
+                    items,
+                    query,
                 )
 
             if playlist is None:
@@ -342,7 +403,7 @@ def _play_sync(
 
                 type=kind,
 
-                limit=1,
+                limit=5,
             )
 
             items = (
@@ -358,7 +419,10 @@ def _play_sync(
                     f"pour {query}."
                 )
 
-            item = items[0]
+            item = pick_best(
+                items,
+                query,
+            )
 
             sp.start_playback(
 
@@ -390,7 +454,7 @@ def _play_sync(
 
             type="track",
 
-            limit=1,
+            limit=5,
         )
 
         items = (
