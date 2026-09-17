@@ -153,7 +153,7 @@ pcm.usb_dmix {
         rate 48000
         channels 2
         period_size 1024
-        buffer_size 8192
+        buffer_size 32768
     }
 }
 pcm.scarlett_out {
@@ -181,11 +181,16 @@ LIBRESPOT_NAME="Scarlett"
 LIBRESPOT_BACKEND="alsa"
 LIBRESPOT_DEVICE="raspotify_out"
 LIBRESPOT_BITRATE="320"
-LIBRESPOT_VOLUME_CTRL="linear"
-LIBRESPOT_INITIAL_VOLUME="70"
+LIBRESPOT_VOLUME_CTRL="fixed"
 ```
 
-`VOLUME_CTRL=linear` est important : avec la courbe `log` par défaut, un volume Spotify de 50 % est quasi inaudible. Redémarrer avec `sudo systemctl restart raspotify`.
+Et commenter la ligne `LIBRESPOT_DISABLE_CREDENTIAL_CACHE=` de la conf par défaut (sinon l'enceinte doit être ré-appairée depuis l'app Spotify après chaque redémarrage). Redémarrer avec `sudo systemctl restart raspotify`.
+
+`VOLUME_CTRL=fixed` est volontaire : le softvol de librespot 0.8 coupe le son de façon erratique après un changement de volume (constaté avec les courbes linear, cubic et log). Le volume de la musique passe donc par le mixeur matériel de l'enceinte (le volume général de Scarlett), fiable à 100 %.
+
+Deux pièges réseau/système rencontrés sur ce montage :
+- **IPv6 cassé côté box** : librespot téléchargeait l'audio à 5 kb/s et la lecture mourait en cours de morceau. Fix : désactiver l'IPv6 sur la connexion (`nmcli con mod <connexion> ipv6.method disabled`).
+- **Segments dmix persistants** : après un changement de `buffer_size` dans asound.conf, supprimer les anciens segments (`ipcs -m` puis `ipcrm -m <id>`), sinon `snd_pcm_open` échoue avec Invalid argument.
 
 **c. API Web Spotify** — créer une app sur [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) (Redirect URI : `http://127.0.0.1:8888/callback`, Web API), renseigner `SPOTIFY_CLIENT_ID` et `SPOTIFY_CLIENT_SECRET` dans `.env`, puis s'authentifier une fois :
 
