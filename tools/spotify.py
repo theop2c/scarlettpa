@@ -583,10 +583,15 @@ def _control_sync(
                     "Quel volume pour la musique ?",
                 )
 
+            # Plafond 99 : librespot 0.8 a un
+            # chemin spécial bugué à la valeur
+            # max (65535) qui coupe le son.
+            # 99 % est indiscernable de 100 %.
+
             volume = max(
                 0,
                 min(
-                    100,
+                    99,
                     int(value),
                 ),
             )
