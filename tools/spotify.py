@@ -583,30 +583,28 @@ def _control_sync(
                     "Quel volume pour la musique ?",
                 )
 
-            # Plafond 99 : librespot 0.8 a un
-            # chemin spécial bugué à la valeur
-            # max (65535) qui coupe le son.
-            # 99 % est indiscernable de 100 %.
+            # librespot est en volume fixe (son
+            # softvol coupait le son de façon
+            # erratique) : le volume "musique"
+            # pilote le volume général matériel,
+            # fiable à 100 %.
 
-            volume = max(
-                0,
-                min(
-                    99,
-                    int(value),
-                ),
+            from audio.volume import (
+                volume_controller,
             )
 
-            sp.volume(
-
-                volume,
-
-                device_id=device_id,
+            state = (
+                volume_controller
+                .set_volume(
+                    value
+                )
             )
 
             return (
                 True,
-                "Volume de la musique "
-                f"à {volume} pour cent.",
+                "Volume à "
+                f"{state['effective_volume']} "
+                "pour cent.",
             )
 
         return (

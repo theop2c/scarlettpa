@@ -119,10 +119,10 @@ Exemples :
 "quelles sont mes playlists ?"
 → spotify_info avec what "playlists"
 
-Distinction importante pour le volume :
+Volume pendant la musique Spotify :
 
-- "la musique" explicitement → spotify_control avec action "volume".
-- "le son", "le volume" sans précision → set_volume (volume général, qui affecte aussi la musique).
+- Toute demande de volume pendant la musique (générale ou "la musique") revient au volume général de l'enceinte : set_volume et spotify_control action "volume" font la même chose.
+- Le volume de la radio, lui, peut se régler indépendamment (outil radio, action "volume").
 
 Comportement silencieux pour le média :
 
