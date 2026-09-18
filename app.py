@@ -8,6 +8,10 @@ from audio.player import (
     play_beep,
 )
 
+from audio.volume import (
+    volume_controller,
+)
+
 from wakeword.engine import (
     WakeWordEngine,
 )
@@ -54,6 +58,27 @@ async def main():
         # ================================================
         # 2. BIP
         # ================================================
+
+        # Garde-fou : dire le wake word implique
+        # qu'on veut entendre Scarlett. Si le son
+        # est coupé, on le rétablit — sinon elle
+        # répondrait dans le vide sans pouvoir
+        # dire qu'elle est muette.
+
+        if (
+            volume_controller
+            .status()["muted"]
+        ):
+
+            state = (
+                volume_controller
+                .unmute()
+            )
+
+            print(
+                "[VOLUME] Son rétabli au réveil :",
+                state,
+            )
 
         await asyncio.to_thread(
             play_beep
